@@ -15,7 +15,7 @@ score(other::Paper, own::Scissor) = 6
 score(other::Shape, own::Shape) = 6 - score(own, other)
 
 total_score(other::Shape, own::Shape) = score(other, own) + score(own)
-total_score(other::Shape, outcome::Outcome) = score(other, Shape(other, outcome)) + score(Shape(other, outcome))
+
 
 abstract type Outcome end
 struct Win <: Outcome end
@@ -56,22 +56,30 @@ function Outcome(s::Symbol)
     end
 end
 
+total_score(other::Shape, outcome::Outcome) = score(other, Shape(other, outcome)) + score(Shape(other, outcome))
 
-function parse_line(::Type{T}, ::Type{S}, line) where {T,S}
-    first, second = Symbol.(split(line))
-    return T(first), S(second)
+
+function parse_line(line)
+    Symbol.(split(line))
 end
 
-function parse_input(::Type{T}, ::Type{S}, stream) where {T,S}
-    return [parse_line(T, S, line) for line in eachline(stream)]
+function parse_input(stream)
+    return [parse_line(line) for line in eachline(stream)]
 end
+
+function parse_symbols(::Type{T}, ::Type{S}, symbols) where {T,S}
+    return ((T(first), S(second)) for (first, second) in symbols)
+end
+
 
 function play(games)
     sum(total_score(game...) for game in games)
 end
 
-games = parse_input(Shape, Shape, "$(dirname(@__FILE__))/input.txt")
+symbols = parse_input("$(dirname(@__FILE__))/input.txt")
+
+games = parse_symbols(Shape, Shape, symbols)
 println("Total score 1: $(play(games))")
 
-games = parse_input(Shape, Outcome, "$(dirname(@__FILE__))/input.txt")
+games = parse_symbols(Shape, Outcome, symbols)
 println("Total score 2: $(play(games))")
