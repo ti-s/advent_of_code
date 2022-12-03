@@ -1,11 +1,11 @@
 using Base.Iterators
 
-function wrong_item(rucksack)
-    len = length(rucksack)
+function compartments(line)
+    len = length(line)
     mid = len ÷ 2
-    first_half = rucksack[begin:mid]
-    second_half = rucksack[mid+1:end]
-    return only(intersect(first_half, second_half))
+    first_half = line[begin:mid]
+    second_half = line[mid+1:end]
+    return first_half, second_half
 end
 
 function priority(item)
@@ -16,12 +16,12 @@ function priority(item)
     end
 end
 
-function find_badge(rucksacks)
-    only(intersect(rucksacks...))
+function common(itrs)
+    only(intersect(itrs...))
 end
 
-file = "$(@__DIR__)/input.txt"
+lines = readlines("$(@__DIR__)/input.txt")
 
-println("Part 1: ", sum(priority ∘ wrong_item, eachline(file)))
+println("Part 1: ", sum(priority ∘ common ∘ compartments, lines))
 
-println("Part 2: ", sum(priority ∘ find_badge, partition(eachline(file), 3)))
+println("Part 2: ", sum(priority ∘ common, partition(lines, 3)))
