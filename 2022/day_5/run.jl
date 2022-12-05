@@ -34,36 +34,28 @@ function parse_file(name)
     return stacks, moves
 end
 
-function execute_moves_one_by_one!(stacks, moves)
+
+function execute_moves!(stacks, moves; reverse=false)
     for (n, from, to) in moves
-        for _ in 1:n
-            crate = pop!(stacks[from])
-            push!(stacks[to], crate)
+        start = lastindex(stacks[from]) - n + 1
+        stop = lastindex(stacks[from])
+        crates = splice!(stacks[from], start:stop)
+        if reverse
+            reverse!(crates)
         end
+        append!(stacks[to], crates)
     end
     stacks
 end
 
-execute_moves_one_by_one(stacks, moves) = execute_moves_one_by_one!(deepcopy(stacks), moves)
-
-function execute_moves_at_once!(stacks, moves)
-    for (n, from, to) in moves
-        crates = [pop!(stacks[from]) for _ in 1:n]
-        for crate in Iterators.reverse(crates)
-            push!(stacks[to], crate)
-        end
-    end
-    stacks
-end
-
-execute_moves_at_once(stacks, moves) = execute_moves_at_once!(deepcopy(stacks), moves)
+execute_moves(stacks, moves; kwargs...) = execute_moves!(deepcopy(stacks), moves; kwargs...)
 
 stacks, moves = parse_file(joinpath(@__DIR__, "input.txt"))
 
-new_stacks = execute_moves_one_by_one(stacks, moves)
+new_stacks = execute_moves(stacks, moves, reverse=true)
 
 println("Part 1: ", String(last.(new_stacks)))
 
-new_stacks = execute_moves_at_once(stacks, moves)
+new_stacks = execute_moves(stacks, moves, reverse=false)
 
 println("Part 2: ", String(last.(new_stacks)))
