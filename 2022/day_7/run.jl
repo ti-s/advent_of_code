@@ -28,7 +28,7 @@ name(f::File) = f.name
 name(d::Dir) = d.name
 
 size(f::File) = f.size
-size(d::Dir) = sum(size, d.files)
+size(d::Dir) = sum(size, files(d), init=0)
 
 parent(f::File) = f.parent
 parent(d::Dir) = d.parent
@@ -37,7 +37,7 @@ isfile(::File) = true
 isfile(::Dir) = false
 isdir(::File) = false
 isdir(::Dir) = true
-isroot(d) = parent(d) == d
+isroot(d) = parent(d) === d
 
 dirs(d::Dir) = values(d.dirs)
 files(d::Dir) = values(d.files)
