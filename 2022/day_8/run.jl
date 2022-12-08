@@ -8,17 +8,24 @@ function mark_line_of_sight!(out, in)
 end
 
 
+function apply_all_directions!(f!, out, in)
+    h, w = size(in)
+    for i = 1:h
+        @views f!(out[i, :], in[i, :])
+        @views f!(out[i, end:-1:begin], in[i, end:-1:begin])
+    end
+    for i = 1:w
+        @views f!(out[:, i], in[:, i])
+        @views f!(out[end:-1:begin, i], in[end:-1:begin, i])
+    end
+    out
+end
+
+
 function visible(trees)
     out = similar(trees, Bool)
     out .= false
-    width = size(trees, 2)
-    for i = 1:width
-        @views mark_line_of_sight!(out[:, i], trees[:, i])
-        @views mark_line_of_sight!(out[i, :], trees[i, :])
-        @views mark_line_of_sight!(out[end:-1:begin, i], trees[end:-1:begin, i])
-        @views mark_line_of_sight!(out[i, end:-1:begin], trees[i, end:-1:begin])
-    end
-    out
+    apply_all_directions!(mark_line_of_sight!, out, trees)
 end
 
 
@@ -33,17 +40,9 @@ function score_line_of_sight!(out, in)
 end
 
 
-
 function scores(trees)
     out = ones(Int, size(trees))
-    width = size(trees, 2)
-    for i = 1:width
-        @views score_line_of_sight!(out[:, i], trees[:, i])
-        @views score_line_of_sight!(out[i, :], trees[i, :])
-        @views score_line_of_sight!(out[end:-1:begin, i], trees[end:-1:begin, i])
-        @views score_line_of_sight!(out[i, end:-1:begin], trees[i, end:-1:begin])
-    end
-    out
+    apply_all_directions!(score_line_of_sight!, out, trees)
 end
 
 
