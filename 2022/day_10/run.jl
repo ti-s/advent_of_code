@@ -1,5 +1,6 @@
-mutable struct CPU
+struct CPU{T}
     registers::Vector{Int}
+    ops::T
 end
 
 
@@ -11,13 +12,14 @@ function noop!(cpu, register, value)
     nothing
 end
 
+CPU() = CPU([1], (noop!, add!))
 
 function parse_instruction(line)
     cmd, args... = split(line)
     if cmd == "addx"
-        2, add!, 1, parse(Int, args[1])
+        2, 2, 1, parse(Int, args[1])
     elseif cmd == "noop"
-        1, noop!, 1, 0
+        1, 1, 1, 0
     end
 end
 
@@ -41,16 +43,16 @@ end
 
 function execute!(cpu, instructions, crt)
     cycles = length(crt)
-    history = Vector{Vector{Int}}(undef, cycles)
+    history = Matrix{Int}(undef, length(cpu.registers), cycles)
     cycle = 0
-    for (duration, op!, register, value) in instructions
+    for (duration, opcode, register, value) in instructions
         for i in 1:duration
             cycle += 1
             cycle > cycles && break
             draw_pixel!(crt, cycle, cpu.registers[1])
-            history[cycle] = copy(cpu.registers)
+            history[:, cycle] .= cpu.registers
         end
-        op!(cpu, register, value)
+        cpu.ops[opcode](cpu, register, value)
     end
     history
 end
@@ -72,19 +74,19 @@ function main()
     testfilename = joinpath(@__DIR__, "test_input.txt")
     filename = joinpath(@__DIR__, "input.txt")
 
-    cpu = CPU([1])
+    cpu = CPU()
     crt = Array{Char}(undef, 40, 6)
     instructions = parse_file(testfilename)
     history = execute!(cpu, instructions, crt)
-    test = sum(i * history[i] for i in [20; 60:40:220])
+    test = sum(i * history[1, i] for i in [20; 60:40:220])
     println("Test: ", test)
     draw(crt)
 
-    cpu = CPU([1])
+    cpu = CPU()
     crt = Array{Char}(undef, 40, 6)
     instructions = parse_file(filename)
     history = execute!(cpu, instructions, crt)
-    part1 = sum(i * history[i] for i in [20; 60:40:220])
+    part1 = sum(i * history[1, i] for i in [20; 60:40:220])
     println("Part 1: ", part1)
     draw(crt)
 end
