@@ -1,4 +1,6 @@
-parse_packet(line) = eval(Meta.parse(line))
+using JSON
+
+parse_packet(line) = JSON.parse(line)
 
 function parse_packets(stream)
     packets = Vector()
