@@ -5,7 +5,7 @@ const Pos = CartesianIndex{2}
 function parse_input(stream)
     m = MagicMatrix('.')
     for (i, line) in enumerate(stream)
-        m[i, 1:length(line)] .= collect(line)
+        m[-i, 1:length(line)] .= collect(line)  # -i to keep north at the top
     end
     m
 end
@@ -14,10 +14,10 @@ print_array(array) = (foreach(println ∘ String, eachrow(array)); println())
 
 function diffuse!(m, n::Real)
     directions = [
-        (Pos(-1, -1), Pos(-1, 0), Pos(-1, 1)),
-        (Pos(1, -1), Pos(1, 0), Pos(1, 1)),
-        (Pos(-1, -1), Pos(0, -1), Pos(1, -1)),
-        (Pos(-1, 1), Pos(0, 1), Pos(1, 1)),
+        Pos(1, -1):Pos(1, 1),    # NW, N, NE
+        Pos(-1, -1):Pos(-1, 1),  # SW, S, SE
+        Pos(-1, -1):Pos(1, -1),  # SW, W, NW
+        Pos(-1, 1):Pos(1, 1),    # SE, E, NE
     ]
     for i = 1:n
         diffuse!(m, directions) && return i
@@ -30,6 +30,7 @@ end
 iself(c) = c == '#'
 
 function hasneighbours(m, I, dirs=Pos(-1, -1):Pos(1, 1))
+    # Check if position I has elves in the relative positions given by dirs
     for J in dirs
         J == Pos(0, 0) && continue
         iself(m[I+J]) && return true
@@ -37,7 +38,7 @@ function hasneighbours(m, I, dirs=Pos(-1, -1):Pos(1, 1))
     return false
 end
 
-function get_direction(m, I, directions)
+function get_direction_without_elves(m, I, directions)
     for dirs in directions
         !hasneighbours(m, I, dirs) && return dirs[2]
     end
@@ -49,7 +50,7 @@ function diffuse!(m, directions)
     for I in eachindex(m)
         !iself(m[I]) && continue
         !hasneighbours(m, I) && continue  # elves without neighbours don't move
-        d = get_direction(m, I, directions)
+        d = get_direction_without_elves(m, I, directions)
         isnothing(d) && continue  # no free direction
         if haskey(proposed, I + d)
             # somebody already propesed to go there
